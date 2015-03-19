@@ -16,7 +16,11 @@ ModbusExample::~ModbusExample()
 
 void ModbusExample::on_FC03_Button_clicked()
 {
-    mb->ReadHoldingRegisters(1, 1);
+    QList<quint16> readList = mb->ReadHoldingRegisters(1, 4);
+    ui->lineEdit_1->setText(QString::number(readList[0]));
+    ui->lineEdit_2->setText(QString::number(readList[1]));
+    ui->lineEdit_3->setText(QString::number(readList[2]));
+    ui->lineEdit_4->setText(QString::number(readList[3]));
 }
 
 void ModbusExample::on_FC06_Button_clicked()

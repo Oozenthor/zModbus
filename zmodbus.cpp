@@ -56,19 +56,25 @@ QList<quint16> ZModbus::ReadInputRegisters(quint16 addr, quint16 qty)
 // 0x03 ReadHoldingRegisters
 QList<quint16> ZModbus::ReadHoldingRegisters(quint16 addr, quint16 qty)
 {
-
+    quint16 tid = 1;
+    tx03(tid, addr, qty);
+    return(QList<quint16>() << 1 << 2 << 3 << 4);
 }
 
 // 0x06 WriteSingleRegister
 bool ZModbus::WriteSingleRegister(quint16 addr, quint16 val)
 {
-
+    quint16 tid = 1;
+    tx06(tid, addr, val);
+    return(1);
 }
 
 // 0x10 WriteMultipleRegisters
 bool ZModbus::WriteMultipleRegisters(quint16 addr, quint16 val)
 {
-
+//    quint16 tid = 1;
+//    tx10(tid, addr, val);
+    return(1);
 }
 
 //##############################################################
