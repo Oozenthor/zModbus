@@ -72,8 +72,35 @@ bool ZModbus::WriteMultipleRegisters(quint16 addr, quint16 val)
 }
 
 //##############################################################
-// Private functions
+// Private slots
 
+void ZModbus::mbRead()
+{
+  ZModbus::mbReplyType mbReply; //
+
+  QList<quint16> myList;
+
+  QByteArray tcpFrame = tcpSocket->readAll(); // Read TCP socket
+  mbReply =  ZModbus::tcpToModbusReply(tcpFrame);
+
+  qDebug() << "fc:" << mbReply.fc;
+  switch (mbReply.fc) {
+  case FC_03:
+      myList = ZModbus::rx03(mbReply.data);
+    break;
+  case FC_06:
+    break;
+
+  case FC_10:
+    break;
+  default:
+    break;
+  }
+}
+
+//##############################################################
+// Private functions
+//
 // A very common transaction form
 // 6 word size requests {16 tid + 16 PID + 16 len + 8 UID + 8 fc + 16 addr + 16 data = 6 x 16 bits }
 QByteArray ZModbus::tx6W(quint16 tid, quint8 fc, quint16 addr, quint16 data)
@@ -87,12 +114,14 @@ QByteArray ZModbus::tx6W(quint16 tid, quint8 fc, quint16 addr, quint16 data)
   return(tcpFrame); // TCP frame for transmission
 }
 
-//##############################################################
+//**************************************************************
 // tx rx implementation for each function code type
 //--------------------------------------------------------------
 // 0xxxx Discrete Outputs
 // 0x01 ReadCoils
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 // 0x05 WriteSingleCoil
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 // 0x0F WriteMultipleCoils
 
 //--------------------------------------------------------------
@@ -129,6 +158,7 @@ QList<quint16> ZModbus::rx03(QByteArray &mbData)
   return(val); //Modbus data
 }
 
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 // 0x06 WriteSingleRegister
 QByteArray ZModbus::tx06(quint16 tid, quint16 addr, quint16 val)
 {
@@ -147,6 +177,7 @@ bool ZModbus::rx06(QByteArray &mbData)
   return(val); // Modbus data
 }
 
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /*
 // 0x10 WriteMultipleRegisters
 QByteArray ZModbus::tx10(quint16 tid, quint16 addr, QList<quint16> val)
@@ -173,34 +204,5 @@ ZModbus::mbReplyType ZModbus::tcpToModbusReply(QByteArray &tcpFrame)
   mbData.data = tcpFrame.remove(0,8); // Strip off TCP part of frame to leave Modbus frame (minus function code) part only
   //  qDebug() << "tcpFrame-> tid:"<< mbData.tid<<", pid:"<<pid<<", length:"<<len<<", uid:"<< uid<< ", mbData.fc:"<< fc<<", mbData->"<< mbData.data.toHex();
   return(mbData);  // Reply with modbus part of transaction
-}
-
-void ZModbus::mbRead()
-{
-  ZModbus::mbReplyType mbReply; //
-
-  QList<quint16> myList;
-
-  QByteArray tcpFrame = tcpSocket->readAll(); // Read TCP socket
-  mbReply =  ZModbus::tcpToModbusReply(tcpFrame);
-
-  qDebug() << "fc:" << mbReply.fc;
-  switch (mbReply.fc) {
-  case FC_03:
-      myList = ZModbus::rx03(mbReply.data);
-    break;
-  case FC_06:
-    break;
-
-  case FC_10:
-    break;
-  default:
-    break;
-  }
-}
-
-void ZModbus::mbWrite()
-{
-
 }
 

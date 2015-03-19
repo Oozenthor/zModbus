@@ -16,6 +16,13 @@ public:
     explicit ModbusExample(QWidget *parent = 0);
     ~ModbusExample();
 
+private slots:
+    void on_FC03_Button_clicked();
+
+    void on_FC06_Button_clicked();
+
+    void on_FC10_Button_clicked();
+
 private:
     Ui::ModbusExample *ui;
     ZModbus *mb;
