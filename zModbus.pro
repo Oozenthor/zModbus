@@ -18,3 +18,6 @@ SOURCES += main.cpp\
 HEADERS  += zmodbus.h
 
 FORMS    += zmodbus.ui
+
+DISTFILES += \
+    functionCodes.txt
