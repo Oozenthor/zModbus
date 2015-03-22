@@ -16,6 +16,9 @@ public:
     explicit ModbusExample(QWidget *parent = 0);
     ~ModbusExample();
 
+protected:
+    ZModbus *mb;
+
 private slots:
     void on_FC03_Button_clicked();
 
@@ -25,7 +28,6 @@ private slots:
 
 private:
     Ui::ModbusExample *ui;
-    ZModbus *mb;
 };
 #endif // MODBUSEXAMPLE
 

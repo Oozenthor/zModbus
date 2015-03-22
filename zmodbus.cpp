@@ -1,4 +1,6 @@
 #include "zmodbus.h"
+QList<quint16> replyList;
+quint16 replyTid;
 
 //##############################################################
 ZModbus::ZModbus(QWidget *parent)
@@ -6,6 +8,8 @@ ZModbus::ZModbus(QWidget *parent)
   tcpSocket = new QTcpSocket(this);
   connect(tcpSocket, SIGNAL(readyRead()), this, SLOT(mbRead()));
   tcpSocket->connectToHost("127.0.0.1",502);
+
+  qDebug() << "valid: " << tcpSocket->isValid();
 }
 
 ZModbus::~ZModbus()
@@ -56,25 +60,32 @@ QList<quint16> ZModbus::ReadInputRegisters(quint16 addr, quint16 qty)
 // 0x03 ReadHoldingRegisters
 QList<quint16> ZModbus::ReadHoldingRegisters(quint16 addr, quint16 qty)
 {
-    quint16 tid = 1;
-    tx03(tid, addr, qty);
-    return(QList<quint16>() << 1 << 2 << 3 << 4);
+  quint16 tid = 1;
+  qDebug() << "tx fc03";
+
+  replyTid = 0;
+  tx03(tid, addr, qty);
+  while( tid != replyTid ) { }
+
+  return(replyList);
 }
 
 // 0x06 WriteSingleRegister
 bool ZModbus::WriteSingleRegister(quint16 addr, quint16 val)
 {
-    quint16 tid = 1;
-    tx06(tid, addr, val);
-    return(1);
+  qDebug() << "tx fc06";
+  quint16 tid = 1;
+  tx06(tid, addr, val);
+  return(1);
 }
 
 // 0x10 WriteMultipleRegisters
 bool ZModbus::WriteMultipleRegisters(quint16 addr, quint16 val)
 {
-//    quint16 tid = 1;
-//    tx10(tid, addr, val);
-    return(1);
+  qDebug() << "tx fc10";
+  quint16 tid = 1;
+  //    tx10(tid, addr, val);
+  return(1);
 }
 
 //##############################################################
@@ -84,15 +95,14 @@ void ZModbus::mbRead()
 {
   ZModbus::mbReplyType mbReply; //
 
-  QList<quint16> myList;
-
   QByteArray tcpFrame = tcpSocket->readAll(); // Read TCP socket
   mbReply =  ZModbus::tcpToModbusReply(tcpFrame);
 
+  replyTid = mbReply.tid;
   qDebug() << "fc:" << mbReply.fc;
   switch (mbReply.fc) {
   case FC_03:
-      myList = ZModbus::rx03(mbReply.data);
+    replyList = ZModbus::rx03(mbReply.data);
     break;
   case FC_06:
     break;
@@ -156,8 +166,8 @@ QList<quint16> ZModbus::rx03(QByteArray &mbData)
   QDataStream mbStream(mbData);
   mbStream >> byteCount;
   for (int loop=0; loop < (byteCount/2); ++loop) {
-      mbStream >> temp; // Extract a word from the data
-      val.append(temp); // Append it to the QList
+    mbStream >> temp; // Extract a word from the data
+    val.append(temp); // Append it to the QList
   }
 
   //  qDebug() << "rx4r-> bytes:" << byteCount << ", val:" << val;
